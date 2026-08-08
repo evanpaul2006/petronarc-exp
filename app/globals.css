@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --background: #02070b;
+  --foreground: #eef8fa;
+  --font-geist-sans: "Bahnschrift", "Aptos", "Segoe UI Variable", sans-serif;
+  --font-geist-mono: "Cascadia Mono", "Consolas", monospace;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+  text-rendering: geometricPrecision;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  color: #001014;
+  background: #36edf7;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #041017;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid #041017;
+  border-radius: 8px;
+  background: #173d48;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #216070;
+}
