@@ -17,6 +17,11 @@
     radial-gradient(circle at 70% 35%, rgba(8, 113, 127, 0.08), transparent 35%),
     #02070b;
   overflow-x: clip;
+  transition: grid-template-columns 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboardSidebarClosed {
+  grid-template-columns: 0px minmax(0, 1fr);
 }
 
 .dashboard button,
@@ -41,6 +46,22 @@
     linear-gradient(90deg, rgba(255, 255, 255, 0.015), transparent 35%),
     linear-gradient(180deg, #061018 0%, #050d14 60%, #030a10 100%);
   box-shadow: 18px 0 45px rgba(0, 0, 0, 0.26);
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 250ms ease,
+    padding 300ms ease,
+    border-color 300ms ease;
+}
+
+.sidebarClosed {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  min-width: 0;
+  padding: 0 !important;
+  border-right-color: transparent;
+  overflow: hidden;
 }
 
 .sidebar::after {
@@ -70,6 +91,41 @@
   justify-content: space-between;
   min-height: 78px;
   padding: 0 10px;
+}
+
+.sidebarCollapseButton {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  color: #647b85;
+  border: 1px solid rgba(118, 172, 189, 0.16);
+  border-radius: 8px;
+  background: rgba(4, 15, 22, 0.65);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.sidebarCollapseButton svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.sidebarCollapseButton:hover,
+.sidebarCollapseButton:focus-visible {
+  color: var(--cyan);
+  border-color: rgba(25, 228, 242, 0.45);
+  background: rgba(8, 28, 37, 0.88);
+  outline: 0;
 }
 
 .brand,
@@ -392,6 +448,57 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.6;
+}
+
+.topbarBrandControl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topbarPanelToggle,
+.expandDetailButton {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 12px;
+  cursor: pointer;
+  color: #7d949e;
+  border: 1px solid rgba(118, 172, 189, 0.18);
+  border-radius: 18px;
+  background: rgba(5, 17, 24, 0.76);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.topbarPanelToggle svg,
+.expandDetailButton svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.topbarPanelToggle:hover,
+.topbarPanelToggle:focus-visible,
+.expandDetailButton:hover,
+.expandDetailButton:focus-visible {
+  color: var(--cyan);
+  border-color: rgba(25, 228, 242, 0.52);
+  background: rgba(6, 29, 37, 0.9);
+  box-shadow: 0 0 14px rgba(25, 228, 242, 0.14);
+  outline: 0;
 }
 
 .routeLabel {
@@ -724,6 +831,14 @@
   gap: 22px;
   min-width: 0;
   padding: 20px 22px 24px;
+  transition:
+    grid-template-columns 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    gap 300ms ease;
+}
+
+.workspaceDetailClosed {
+  grid-template-columns: minmax(0, 1fr) 0px !important;
+  gap: 0 !important;
 }
 
 .primaryColumn {
@@ -734,7 +849,6 @@
 
 .overviewPanel,
 .explorerPanel,
-.costPanel,
 .detailPanel {
   border: 1px solid rgba(116, 177, 194, 0.14);
   background:
@@ -943,6 +1057,131 @@
   perspective: 1200px;
 }
 
+.topbarControlDock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1px solid rgba(25, 228, 242, 0.22);
+  border-radius: 24px;
+  background: rgba(3, 14, 22, 0.72);
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.dockDivider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: rgba(118, 172, 189, 0.2);
+}
+
+.dockButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 11px;
+  cursor: pointer;
+  color: #6a828e;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: transparent;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.dockButton svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.dockButton:hover,
+.dockButton:focus-visible {
+  color: var(--cyan);
+  border-color: rgba(25, 228, 242, 0.32);
+  background: rgba(25, 228, 242, 0.06);
+  outline: 0;
+}
+
+.dockActive {
+  color: var(--cyan-bright);
+  border-color: rgba(25, 228, 242, 0.55);
+  background: rgba(25, 228, 242, 0.12);
+  box-shadow: 0 0 12px rgba(25, 228, 242, 0.18);
+}
+
+.kartStageFullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+.stageFullscreenExit {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  cursor: pointer;
+  color: var(--cyan-bright);
+  border: 1px solid rgba(25, 228, 242, 0.52);
+  border-radius: 19px;
+  background: rgba(3, 14, 21, 0.88);
+  box-shadow: 0 0 22px rgba(25, 228, 242, 0.22);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  backdrop-filter: blur(12px);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.stageFullscreenExit svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.stageFullscreenExit:hover,
+.stageFullscreenExit:focus-visible {
+  color: #ffffff;
+  border-color: var(--cyan-bright);
+  background: rgba(6, 32, 42, 0.96);
+  box-shadow: 0 0 30px rgba(25, 228, 242, 0.42);
+  outline: 0;
+}
+
 .isDragging {
   cursor: grabbing;
 }
@@ -1020,80 +1259,337 @@
   font-weight: 400;
 }
 
-.motionLayer {
-  --drag-x: 0px;
-  --parallax-x: 0px;
-  --parallax-y: 0px;
-  --tilt-x: 0deg;
-  --tilt-y: 0deg;
+/* Stage Environment Toggle Segmented Control */
+.stageEnvironmentDock {
   position: absolute;
-  inset: -2.5%;
+  top: 18px;
+  left: 18px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(118, 172, 189, 0.22);
+  border-radius: 20px;
+  background: rgba(3, 14, 22, 0.72);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  transition: all 250ms ease;
+}
+
+.stageEnvButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  cursor: pointer;
+  color: #647c87;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  background: transparent;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  transition: all 180ms ease;
+}
+
+.stageEnvButton svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.stageEnvButton:hover,
+.stageEnvButton:focus-visible {
+  color: var(--cyan);
+  background: rgba(25, 228, 242, 0.08);
+  outline: 0;
+}
+
+.stageEnvButtonActive {
+  color: #ffffff !important;
+  border-color: rgba(25, 228, 242, 0.45);
+  background: linear-gradient(135deg, rgba(16, 85, 102, 0.9), rgba(6, 40, 52, 0.95)) !important;
+  box-shadow: 0 2px 10px rgba(25, 228, 242, 0.25);
+}
+
+/* Clean Studio Stage Overrides */
+.kartStageStudio {
+  background: #e5ebf1 !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+.stageAtmosphereStudio {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.98), rgba(226, 232, 240, 0.9) 55%, rgba(203, 213, 225, 0.95) 100%),
+    linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%) !important;
+}
+
+.stageGridStudio {
+  opacity: 0.15 !important;
+  background-image:
+    linear-gradient(rgba(51, 65, 85, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.35) 1px, transparent 1px) !important;
+}
+
+.orbitRingStudio {
+  border-color: rgba(71, 85, 105, 0.25) !important;
+  box-shadow: 0 0 20px rgba(100, 116, 139, 0.1) !important;
+}
+
+.axisReadoutStudio span {
+  color: #64748b !important;
+}
+
+.axisReadoutStudio b {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.selectedTagStudio {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(148, 163, 184, 0.4) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  color: #0f172a !important;
+}
+
+.selectedTagStudio small {
+  color: #64748b !important;
+}
+
+.selectedTagStudio strong {
+  color: #0f172a !important;
+}
+
+.selectedTagStudio b {
+  color: #0284c7 !important;
+}
+
+.motionLayer {
+  position: absolute;
+  inset: 0;
   z-index: 2;
-  transform: translate3d(
-      calc(var(--drag-x) + var(--parallax-x)),
-      var(--parallax-y),
-      0
-    )
-    rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
-  transform-style: preserve-3d;
-  transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
-  will-change: transform;
 }
 
-.isDragging .motionLayer {
-  transition-duration: 0ms;
+.modelShell,
+.modelHost {
+  position: absolute;
+  inset: 0;
 }
 
-.kartImage {
-  object-fit: cover;
-  object-position: center;
-  pointer-events: none;
-  filter: saturate(0.92) contrast(1.06) brightness(0.91);
-  animation: kartReveal 950ms 120ms both cubic-bezier(0.2, 0.7, 0.2, 1);
+.modelShell {
+  overflow: hidden;
+  animation: kartReveal 800ms 100ms both cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 @keyframes kartReveal {
   from {
     opacity: 0;
-    transform: scale(1.035);
-    filter: saturate(0.3) contrast(1.15) brightness(0.55) blur(5px);
+    transform: scale(1.018);
+    filter: saturate(0.45) brightness(0.58) blur(4px);
   }
 }
 
-.imageVignette {
+.modelHost {
+  z-index: 1;
+}
+
+.modelCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  outline: 0;
+  touch-action: none;
+}
+
+.modelCanvas:active {
+  cursor: grabbing;
+}
+
+.modelShell::after {
   position: absolute;
   inset: 0;
+  z-index: 2;
+  content: "";
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(2, 7, 11, 0.65), transparent 15%, transparent 85%, rgba(2, 7, 11, 0.6)),
-    linear-gradient(180deg, rgba(2, 7, 11, 0.48), transparent 22%, transparent 77%, rgba(2, 7, 11, 0.63));
+    linear-gradient(90deg, rgba(2, 7, 11, 0.42), transparent 14%, transparent 84%, rgba(2, 7, 11, 0.4)),
+    linear-gradient(180deg, rgba(2, 7, 11, 0.3), transparent 22%, transparent 74%, rgba(1, 5, 8, 0.48));
+}
+
+.modelLoading,
+.modelError {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 5;
+  display: grid;
+  width: min(250px, 62%);
+  gap: 11px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-geist-mono), monospace;
+}
+
+.modelLoaderTrack {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(25, 228, 242, 0.12);
+}
+
+.modelLoaderTrack i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--cyan);
+  box-shadow: 0 0 12px rgba(25, 228, 242, 0.62);
+  transition: width 220ms ease;
+}
+
+.modelLoading > span:last-child {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modelLoading small,
+.modelError small {
+  color: #55737d;
+  font-size: 7px;
+  letter-spacing: 0.14em;
+}
+
+.modelLoading strong,
+.modelError strong {
+  color: #a7c3ca;
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.modelError {
+  justify-items: center;
+  padding: 18px;
+  border: 1px solid rgba(255, 107, 39, 0.24);
+  background: rgba(4, 12, 16, 0.82);
+}
+
+.resetView {
+  position: absolute;
+  top: 62px;
+  left: 18px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  cursor: pointer;
+  color: #66838d;
+  border: 1px solid rgba(86, 153, 170, 0.16);
+  border-radius: 7px;
+  background: rgba(3, 12, 17, 0.68);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 6px;
+  letter-spacing: 0.12em;
+  backdrop-filter: blur(10px);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.resetView svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.resetView:hover,
+.resetView:focus-visible {
+  color: var(--cyan);
+  border-color: rgba(25, 228, 242, 0.52);
+  background: rgba(4, 26, 32, 0.84);
+  outline: 0;
+}
+
+.resetViewStudio {
+  color: #475569 !important;
+  border-color: rgba(148, 163, 184, 0.4) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+.resetViewStudio:hover,
+.resetViewStudio:focus-visible {
+  color: #0f172a !important;
+  border-color: #0284c7 !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 18px rgba(2, 132, 199, 0.25) !important;
+}
+
+.hotspotOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.hotspotAnchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 10;
+  will-change: transform;
 }
 
 .hotspot {
   position: absolute;
-  z-index: 8;
-  display: flex;
-  align-items: center;
+  width: 26px;
+  height: 26px;
   padding: 0;
   cursor: pointer;
   border: 0;
   outline: 0;
   background: transparent;
-  transform: translateY(-50%);
-  transform-style: preserve-3d;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
 }
 
-.hotspotLeft {
+.hotspotAssembly {
+  position: absolute;
+  top: 50%;
+  left: 26px;
+  display: flex;
+  align-items: center;
+  transform: translateY(-50%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hotspotAssemblyLeft {
+  left: auto;
+  right: 26px;
   flex-direction: row-reverse;
-  transform: translate(-100%, -50%);
 }
 
 .hotspotDot {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: grid;
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
   place-items: center;
   border: 1px solid rgba(67, 235, 245, 0.75);
   border-radius: 50%;
@@ -1135,13 +1631,14 @@
   background: linear-gradient(90deg, rgba(25, 228, 242, 0.7), rgba(25, 228, 242, 0.2));
 }
 
-.hotspotLeft .hotspotLine {
+.hotspotAssemblyLeft .hotspotLine {
   background: linear-gradient(90deg, rgba(25, 228, 242, 0.2), rgba(25, 228, 242, 0.7));
 }
 
 .hotspotLabel {
   min-width: max-content;
   padding: 8px 12px;
+  opacity: 0;
   color: #b9cbd1;
   border: 1px solid rgba(109, 179, 196, 0.2);
   border-radius: 15px;
@@ -1150,10 +1647,17 @@
   font-size: 8px;
   line-height: 1;
   backdrop-filter: blur(8px);
+  transform: translateX(-4px);
   transition:
+    opacity 160ms ease,
+    transform 160ms ease,
     color 160ms ease,
     border-color 160ms ease,
     background 160ms ease;
+}
+
+.hotspotAssemblyLeft .hotspotLabel {
+  transform: translateX(4px);
 }
 
 .hotspot:hover .hotspotDot,
@@ -1178,10 +1682,12 @@
 .hotspot:hover .hotspotLabel,
 .hotspot:focus-visible .hotspotLabel,
 .hotspotActive .hotspotLabel {
+  opacity: 1;
   color: #f5feff;
   border-color: rgba(25, 228, 242, 0.78);
   background: rgba(4, 31, 38, 0.94);
   box-shadow: 0 0 19px rgba(25, 228, 242, 0.15);
+  transform: translateX(0);
 }
 
 .hotspotActive .hotspotDot i {
@@ -1202,7 +1708,7 @@
   left: 16px;
   z-index: 14;
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-columns: 38px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 10px;
   max-width: 410px;
@@ -1212,6 +1718,53 @@
   background: rgba(3, 13, 19, 0.76);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(14px);
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease,
+    visibility 260ms;
+}
+
+.selectedTagClosed {
+  transform: translateY(22px);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.selectedTagClose {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  margin-left: 2px;
+  padding: 0;
+  cursor: pointer;
+  color: #5d7580;
+  border: 1px solid rgba(118, 172, 189, 0.14);
+  border-radius: 50%;
+  background: rgba(4, 15, 22, 0.6);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.selectedTagClose svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.selectedTagClose:hover,
+.selectedTagClose:focus-visible {
+  color: var(--cyan);
+  border-color: rgba(25, 228, 242, 0.45);
+  background: rgba(8, 28, 37, 0.88);
+  outline: 0;
 }
 
 .selectedTagGlyph {
@@ -1253,104 +1806,7 @@
   font-weight: 500;
 }
 
-.costPanel {
-  display: grid;
-  gap: 10px;
-  min-height: 120px;
-  padding: 17px 20px;
-  border-radius: 12px;
-}
 
-.costPanelHead {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-}
-
-.costPanelHead > span {
-  display: grid;
-  gap: 3px;
-}
-
-.costPanelHead small {
-  color: #516873;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 6px;
-  letter-spacing: 0.15em;
-}
-
-.costPanelHead strong {
-  font-size: 11px;
-}
-
-.selectedAllocation {
-  justify-items: end;
-}
-
-.selectedAllocation b {
-  color: var(--cyan);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.segmentedBar {
-  display: flex;
-  gap: 3px;
-  height: 12px;
-  overflow: hidden;
-  border-radius: 6px;
-}
-
-.segmentedBar button {
-  flex: 0 0 var(--segment-share);
-  height: 100%;
-  min-width: 4px;
-  padding: 0;
-  cursor: pointer;
-  border: 0;
-  outline: 0;
-  background: #15343e;
-  transition: background 150ms ease, filter 150ms ease;
-}
-
-.segmentedBar button:nth-child(even) {
-  background: #1b4450;
-}
-
-.segmentedBar button:hover,
-.segmentedBar button:focus-visible,
-.segmentActive {
-  background: var(--cyan) !important;
-  box-shadow: 0 0 12px rgba(25, 228, 242, 0.45);
-  filter: brightness(1.1);
-}
-
-.costLegend {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #3e545e;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 6px;
-}
-
-.costLegend p {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 0;
-  color: #607680;
-  text-transform: uppercase;
-}
-
-.costLegend i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 5px var(--cyan);
-}
 
 .detailPanel {
   position: sticky;
@@ -1369,6 +1825,24 @@
   box-shadow:
     0 0 28px rgba(25, 228, 242, 0.08),
     inset 0 0 30px rgba(25, 228, 242, 0.015);
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 250ms ease,
+    padding 300ms ease,
+    border-color 300ms ease;
+}
+
+.detailPanelClosed {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-color: transparent !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
 }
 
 .detailCorners {
@@ -1395,6 +1869,47 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.detailHeaderMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detailCloseButton {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  color: #556c75;
+  border: 1px solid rgba(118, 172, 189, 0.14);
+  border-radius: 50%;
+  background: rgba(4, 15, 22, 0.6);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.detailCloseButton svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.detailCloseButton:hover,
+.detailCloseButton:focus-visible {
+  color: var(--cyan);
+  border-color: rgba(25, 228, 242, 0.45);
+  background: rgba(8, 28, 37, 0.88);
+  outline: 0;
 }
 
 .detailHeader small,
@@ -2028,11 +2543,7 @@
   }
 
   .motionLayer {
-    inset: -2%;
-  }
-
-  .kartImage {
-    object-position: 54% center;
+    inset: 0;
   }
 
   .axisReadout {
@@ -2062,6 +2573,20 @@
     opacity: 0.72;
   }
 
+  .topbarControlDock {
+    display: flex;
+    padding: 2px 3px;
+  }
+
+  .topbarControlDock .dockButton span {
+    display: none;
+  }
+
+  .topbarControlDock .dockButton {
+    height: 28px;
+    padding: 0 7px;
+  }
+
   .selectedTag {
     right: 9px;
     bottom: 9px;
@@ -2074,17 +2599,17 @@
     display: none;
   }
 
-  .costPanel {
-    min-height: 108px;
-    padding: 15px;
+  .stageEnvironmentDock {
+    top: 10px;
+    left: 10px;
   }
 
-  .costLegend p {
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .resetView {
+    top: 52px;
+    left: 10px;
   }
+
+
 
   .detailPanel {
     display: grid;
@@ -2142,14 +2667,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .systemCard,
-  .kartImage,
+  .modelShell,
   .liveDot,
   .blueprintOrbit,
   .hotspotActive .hotspotDot i {
     animation: none;
   }
 
-  .motionLayer,
   .sidebar,
   .systemCard,
   .hotspotDot,
@@ -2157,7 +2681,4 @@
     transition: none;
   }
 
-  .motionLayer {
-    transform: none !important;
-  }
 }

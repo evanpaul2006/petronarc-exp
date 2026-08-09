@@ -4,12 +4,12 @@ import Image from "next/image";
 import {
   type CSSProperties,
   type KeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import KartModel, { type FocusRequest } from "./kart-model";
 import {
   formatInr,
   getSystemById,
@@ -19,6 +19,7 @@ import {
   type IconKey,
   type SystemId,
 } from "./kart-systems";
+import { ENVIRONMENT_THEMES, type EnvironmentThemeId } from "./kart-environment";
 import styles from "./dashboard.module.css";
 
 interface GlyphProps {
@@ -100,13 +101,6 @@ function SystemGlyph({ icon, size = 30 }: GlyphProps) {
           <path d="M12 18h6M9 27l-2 3M22 27l2 3" />
         </svg>
       );
-    case "safety":
-      return (
-        <svg {...common}>
-          <path d="M16 3 27 7v8c0 7-4.6 11.6-11 14-6.4-2.4-11-7-11-14V7Z" />
-          <path d="m10 16 4 4 8-9" />
-        </svg>
-      );
     default:
       return (
         <svg {...common}>
@@ -158,6 +152,66 @@ function CloseIcon() {
   );
 }
 
+function PanelLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <path d="M9 3v18" />
+    </svg>
+  );
+}
+
+function PanelRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <path d="M15 3v18" />
+    </svg>
+  );
+}
+
+function BadgeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+      <path d="M8 11h.01M12 11h4" />
+    </svg>
+  );
+}
+
+function MaximizeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18-5h-3a2 2 0 0 0-2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3" />
+    </svg>
+  );
+}
+
+function MinimizeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14h6v6m10-10h-6V4M4 10h6V4m10 10h-6v6" />
+    </svg>
+  );
+}
+
+function CyberIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+    </svg>
+  );
+}
+
+function StudioIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
 function PetronarcMark({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? styles.brandCompact : styles.brand} aria-label="Petronarc">
@@ -190,19 +244,37 @@ function PetronarcMark({ compact = false }: { compact?: boolean }) {
 
 export default function PetronarcDashboard() {
   const [selectedId, setSelectedId] = useState<SystemId>("brake");
+  const [focusRequest, setFocusRequest] = useState<FocusRequest>(null);
   const [query, setQuery] = useState("");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [activeResult, setActiveResult] = useState(0);
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isSidebarClosed, setIsSidebarClosed] = useState(false);
+  const [isDetailPanelClosed, setIsDetailPanelClosed] = useState(false);
+  const [isFocusedBadgeClosed, setIsFocusedBadgeClosed] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [environmentTheme, setEnvironmentTheme] = useState<EnvironmentThemeId>("cyber");
 
   const searchRef = useRef<HTMLDivElement>(null);
   const alertsRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const motionRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
-  const dragStartRef = useRef({ x: 0, current: 0 });
-  const dragXRef = useRef(0);
+  const stageContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("petronarc_env_theme") as EnvironmentThemeId;
+      if (saved === "cyber" || saved === "studio") {
+        setEnvironmentTheme(saved);
+      }
+    } catch {}
+  }, []);
+
+  function handleThemeChange(theme: EnvironmentThemeId) {
+    setEnvironmentTheme(theme);
+    try {
+      localStorage.setItem("petronarc_env_theme", theme);
+    } catch {}
+  }
 
   const selected = getSystemById(selectedId);
   const selectedShare = (selected.estimatedCostInr / TOTAL_ESTIMATED_COST) * 100;
@@ -218,6 +290,20 @@ export default function PetronarcDashboard() {
     );
   }, [query]);
 
+  function toggleFullscreen() {
+    if (!isFullscreen) {
+      setIsFullscreen(true);
+      if (stageContainerRef.current?.requestFullscreen) {
+        stageContainerRef.current.requestFullscreen().catch(() => {});
+      }
+    } else {
+      setIsFullscreen(false);
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  }
+
   useEffect(() => {
     function closeFloatingPanels(event: globalThis.PointerEvent) {
       const target = event.target as Node;
@@ -225,24 +311,39 @@ export default function PetronarcDashboard() {
       if (!alertsRef.current?.contains(target)) setIsAlertsOpen(false);
     }
 
+    function handleFullscreenChange() {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    }
+
     function handleEscape(event: globalThis.KeyboardEvent) {
       if (event.key !== "Escape") return;
+      if (isFullscreen) {
+        setIsFullscreen(false);
+        return;
+      }
       setIsSearchActive(false);
       setIsAlertsOpen(false);
       setIsDrawerOpen(false);
     }
 
     document.addEventListener("pointerdown", closeFloatingPanels);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("keydown", handleEscape);
     return () => {
       document.removeEventListener("pointerdown", closeFloatingPanels);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, []);
+  }, [isFullscreen]);
 
   function selectSystem(id: SystemId, options?: { closeSearch?: boolean }) {
     setSelectedId(id);
+    setFocusRequest((prev) => ({
+      id,
+      sequence: (prev?.sequence ?? 0) + 1,
+    }));
     setIsDrawerOpen(false);
+    setIsFocusedBadgeClosed(false);
     if (options?.closeSearch) {
       setQuery("");
       setIsSearchActive(false);
@@ -272,58 +373,6 @@ export default function PetronarcDashboard() {
     }
   }
 
-  function setMotionVariable(name: string, value: string) {
-    motionRef.current?.style.setProperty(name, value);
-  }
-
-  function handleStagePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!stageRef.current) return;
-    const bounds = stageRef.current.getBoundingClientRect();
-
-    if (isDraggingRef.current) {
-      const next = Math.max(
-        -34,
-        Math.min(34, dragStartRef.current.current + event.clientX - dragStartRef.current.x),
-      );
-      dragXRef.current = next;
-      setMotionVariable("--drag-x", `${next}px`);
-      setMotionVariable("--tilt-y", `${next * 0.055}deg`);
-      return;
-    }
-
-    if (event.pointerType !== "mouse") return;
-    const relativeX = (event.clientX - bounds.left) / bounds.width - 0.5;
-    const relativeY = (event.clientY - bounds.top) / bounds.height - 0.5;
-    setMotionVariable("--parallax-x", `${relativeX * 12}px`);
-    setMotionVariable("--parallax-y", `${relativeY * 9}px`);
-    setMotionVariable("--tilt-x", `${relativeY * -1.4}deg`);
-    setMotionVariable("--tilt-y", `${relativeX * 1.9}deg`);
-  }
-
-  function handleStagePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    if ((event.target as HTMLElement).closest("button")) return;
-    isDraggingRef.current = true;
-    dragStartRef.current = { x: event.clientX, current: dragXRef.current };
-    stageRef.current?.setPointerCapture(event.pointerId);
-    stageRef.current?.classList.add(styles.isDragging);
-  }
-
-  function handleStagePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
-    isDraggingRef.current = false;
-    stageRef.current?.classList.remove(styles.isDragging);
-    if (stageRef.current?.hasPointerCapture(event.pointerId)) {
-      stageRef.current.releasePointerCapture(event.pointerId);
-    }
-  }
-
-  function resetPointerParallax() {
-    if (isDraggingRef.current) return;
-    setMotionVariable("--parallax-x", "0px");
-    setMotionVariable("--parallax-y", "0px");
-    setMotionVariable("--tilt-x", "0deg");
-    setMotionVariable("--tilt-y", `${dragXRef.current * 0.055}deg`);
-  }
-
   const sidebarContent = (
     <>
       <div className={styles.sidebarTop}>
@@ -349,6 +398,7 @@ export default function PetronarcDashboard() {
             <button
               type="button"
               key={system.id}
+              data-system-card={system.id}
               className={`${styles.systemCard} ${isActive ? styles.systemCardActive : ""}`}
               onClick={() => selectSystem(system.id)}
               aria-pressed={isActive}
@@ -361,7 +411,7 @@ export default function PetronarcDashboard() {
                 <strong>{system.shortName}</strong>
                 <small>
                   {system.componentCount} components
-                  <i aria-hidden="true">â€¢</i>
+                  <i aria-hidden="true">•</i>
                   {formatInr(system.estimatedCostInr)}
                 </small>
               </span>
@@ -376,16 +426,22 @@ export default function PetronarcDashboard() {
         <span className={styles.liveDot} />
         <span>
           <strong>BUILD DATA ONLINE</strong>
-          <small>Demo estimates Â· v1.0</small>
+          <small>Demo estimates · v1.0</small>
         </span>
       </div>
     </>
   );
 
   return (
-    <main className={styles.dashboard}>
+    <main
+      className={`${styles.dashboard} ${
+        isSidebarClosed ? styles.dashboardSidebarClosed : ""
+      }`}
+    >
       <aside
-        className={`${styles.sidebar} ${isDrawerOpen ? styles.sidebarOpen : ""}`}
+        className={`${styles.sidebar} ${isDrawerOpen ? styles.sidebarOpen : ""} ${
+          isSidebarClosed ? styles.sidebarClosed : ""
+        }`}
       >
         {sidebarContent}
       </aside>
@@ -417,6 +473,78 @@ export default function PetronarcDashboard() {
           <i>/</i>
           <strong>EXPENSE SHOWCASE</strong>
         </div>
+
+        {/* Unified View Control Dock on Main Header */}
+        <div
+          className={styles.topbarControlDock}
+          role="toolbar"
+          aria-label="Layout and View Controls"
+        >
+          <button
+            type="button"
+            className={`${styles.dockButton} ${!isSidebarClosed ? styles.dockActive : ""}`}
+            onClick={() => setIsSidebarClosed((prev) => !prev)}
+            title={isSidebarClosed ? "Show Left Sidebar" : "Hide Left Sidebar"}
+            aria-label="Toggle Left Sidebar"
+            aria-pressed={!isSidebarClosed}
+          >
+            <PanelLeftIcon />
+            <span>Sidebar</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.dockButton} ${!isDetailPanelClosed ? styles.dockActive : ""}`}
+            onClick={() => setIsDetailPanelClosed((prev) => !prev)}
+            title={isDetailPanelClosed ? "Show Details Panel" : "Hide Details Panel"}
+            aria-label="Toggle Details Panel"
+            aria-pressed={!isDetailPanelClosed}
+          >
+            <PanelRightIcon />
+            <span>Details</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.dockButton} ${!isFocusedBadgeClosed ? styles.dockActive : ""}`}
+            onClick={() => setIsFocusedBadgeClosed((prev) => !prev)}
+            title={isFocusedBadgeClosed ? "Show Focused System Badge" : "Hide Focused System Badge"}
+            aria-label="Toggle Focused System Badge"
+            aria-pressed={!isFocusedBadgeClosed}
+          >
+            <BadgeIcon />
+            <span>Badge</span>
+          </button>
+
+          <span className={styles.dockDivider} aria-hidden="true" />
+
+          <button
+            type="button"
+            className={`${styles.dockButton} ${environmentTheme === "studio" ? styles.dockActive : ""}`}
+            onClick={() => handleThemeChange(environmentTheme === "cyber" ? "studio" : "cyber")}
+            title={`Switch to ${environmentTheme === "cyber" ? "Clean Studio" : "Cyber Paddock"} Environment`}
+            aria-label="Toggle Canvas Environment Theme"
+            aria-pressed={environmentTheme === "studio"}
+          >
+            {environmentTheme === "studio" ? <StudioIcon /> : <CyberIcon />}
+            <span>{environmentTheme === "studio" ? "Studio" : "Cyber"}</span>
+          </button>
+
+          <span className={styles.dockDivider} aria-hidden="true" />
+
+          <button
+            type="button"
+            className={`${styles.dockButton} ${isFullscreen ? styles.dockActive : ""}`}
+            onClick={toggleFullscreen}
+            title={isFullscreen ? "Exit Fullscreen (Esc)" : "Enter 3D Fullscreen"}
+            aria-label="Toggle 3D Fullscreen"
+            aria-pressed={isFullscreen}
+          >
+            {isFullscreen ? <MinimizeIcon /> : <MaximizeIcon />}
+            <span>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</span>
+          </button>
+        </div>
+
         <div className={styles.topbarActions}>
           <div className={styles.searchWrap} ref={searchRef}>
             <SearchIcon />
@@ -437,7 +565,7 @@ export default function PetronarcDashboard() {
               role="combobox"
               autoComplete="off"
             />
-            <kbd>âŒ˜ K</kbd>
+            <kbd>⌘ K</kbd>
             {isSearchActive && (
               <div
                 className={styles.searchResults}
@@ -460,7 +588,7 @@ export default function PetronarcDashboard() {
                       </span>
                       <span>
                         <strong>{system.name}</strong>
-                        <small>{system.aliases.slice(0, 3).join(" Â· ")}</small>
+                        <small>{system.aliases.slice(0, 3).join(" · ")}</small>
                       </span>
                       <b>{formatInr(system.estimatedCostInr)}</b>
                     </button>
@@ -470,7 +598,7 @@ export default function PetronarcDashboard() {
                     <SearchIcon />
                     <span>
                       <strong>No matching system</strong>
-                      <small>Try â€œcaliperâ€, â€œradiatorâ€ or â€œwiringâ€.</small>
+                      <small>Try “caliper”, “radiator” or “wiring”.</small>
                     </span>
                   </div>
                 )}
@@ -518,13 +646,18 @@ export default function PetronarcDashboard() {
         </div>
       </header>
 
-      <section className={styles.workspace} aria-label="Go-kart expense showcase">
+      <section
+        className={`${styles.workspace} ${
+          isDetailPanelClosed ? styles.workspaceDetailClosed : ""
+        }`}
+        aria-label="Go-kart expense showcase"
+      >
         <div className={styles.primaryColumn}>
           <section className={styles.overviewPanel} aria-label="Build expense summary">
             <div className={styles.overviewIntro}>
               <span className={styles.eyebrow}>PROJECT OVERVIEW</span>
               <h1>BUILD INVESTMENT</h1>
-              <p>Live architecture Â· illustrative expense data</p>
+              <p>Live architecture · illustrative expense data</p>
             </div>
             <div className={styles.totalMetric}>
               <span>Total estimated cost</span>
@@ -557,67 +690,110 @@ export default function PetronarcDashboard() {
               </div>
               <p>
                 <span className={styles.pointerIcon} aria-hidden="true" />
-                Drag to inspect Â· select a marker
+                Drag to orbit · scroll to zoom · select a marker
               </p>
             </div>
 
             <div
-              className={styles.kartStage}
-              ref={stageRef}
-              onPointerMove={handleStagePointerMove}
-              onPointerDown={handleStagePointerDown}
-              onPointerUp={handleStagePointerUp}
-              onPointerCancel={handleStagePointerUp}
-              onPointerLeave={resetPointerParallax}
+              ref={stageContainerRef}
+              className={`${styles.kartStage} ${
+                isFullscreen ? styles.kartStageFullscreen : ""
+              } ${
+                environmentTheme === "studio" ? styles.kartStageStudio : ""
+              }`}
             >
-              <div className={styles.stageAtmosphere} />
-              <div className={styles.stageGrid} />
-              <div className={styles.orbitRingOne} />
-              <div className={styles.orbitRingTwo} />
-              <div className={styles.axisReadout} aria-hidden="true">
-                <span>AXIS 03</span>
-                <b>34.77Â°</b>
+              <div
+                className={styles.stageEnvironmentDock}
+                role="radiogroup"
+                aria-label="3D Canvas Environment Theme"
+              >
+                <button
+                  type="button"
+                  className={`${styles.stageEnvButton} ${
+                    environmentTheme === "cyber" ? styles.stageEnvButtonActive : ""
+                  }`}
+                  onClick={() => handleThemeChange("cyber")}
+                  role="radio"
+                  aria-checked={environmentTheme === "cyber"}
+                  title="Cyber Paddock (High-Tech Dark Grid Stage)"
+                >
+                  <CyberIcon />
+                  <span>CYBER PADDOCK</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.stageEnvButton} ${
+                    environmentTheme === "studio" ? styles.stageEnvButtonActive : ""
+                  }`}
+                  onClick={() => handleThemeChange("studio")}
+                  role="radio"
+                  aria-checked={environmentTheme === "studio"}
+                  title="Clean Studio (Pristine Showroom Stage)"
+                >
+                  <StudioIcon />
+                  <span>CLEAN STUDIO</span>
+                </button>
               </div>
 
-              <div className={styles.motionLayer} ref={motionRef}>
-                <Image
-                  className={styles.kartImage}
-                  src="/petronarc-kart-stage-v2.jpg"
-                  alt="Three-quarter view of an open-wheel collegiate racing kart"
-                  fill
-                  priority
-                  sizes="(max-width: 720px) 100vw, (max-width: 1259px) 92vw, 58vw"
-                  draggable={false}
+              {isFullscreen && (
+                <button
+                  type="button"
+                  className={styles.stageFullscreenExit}
+                  onClick={toggleFullscreen}
+                  title="Exit Fullscreen (Esc)"
+                  aria-label="Exit Fullscreen"
+                >
+                  <MinimizeIcon />
+                  <span>Exit Fullscreen</span>
+                </button>
+              )}
+
+              <div
+                className={`${styles.stageAtmosphere} ${
+                  environmentTheme === "studio" ? styles.stageAtmosphereStudio : ""
+                }`}
+              />
+              <div
+                className={`${styles.stageGrid} ${
+                  environmentTheme === "studio" ? styles.stageGridStudio : ""
+                }`}
+              />
+              <div
+                className={`${styles.orbitRingOne} ${
+                  environmentTheme === "studio" ? styles.orbitRingStudio : ""
+                }`}
+              />
+              <div
+                className={`${styles.orbitRingTwo} ${
+                  environmentTheme === "studio" ? styles.orbitRingStudio : ""
+                }`}
+              />
+              <div
+                className={`${styles.axisReadout} ${
+                  environmentTheme === "studio" ? styles.axisReadoutStudio : ""
+                }`}
+                aria-hidden="true"
+              >
+                <span>REALTIME 3D</span>
+                <b>{ENVIRONMENT_THEMES[environmentTheme].badgeLabel}</b>
+              </div>
+
+              <div className={styles.motionLayer}>
+                <KartModel
+                  selectedId={selectedId}
+                  focusRequest={focusRequest}
+                  onSelectSystem={selectSystem}
+                  environmentTheme={environmentTheme}
                 />
-                <div className={styles.imageVignette} />
-                {KART_SYSTEMS.map((system) => {
-                  const isActive = system.id === selectedId;
-                  return (
-                    <button
-                      type="button"
-                      key={system.id}
-                      className={`${styles.hotspot} ${
-                        system.hotspot.align === "left" ? styles.hotspotLeft : ""
-                      } ${isActive ? styles.hotspotActive : ""}`}
-                      style={{
-                        left: `${system.hotspot.x}%`,
-                        top: `${system.hotspot.y}%`,
-                      }}
-                      onClick={() => selectSystem(system.id)}
-                      aria-label={`Select ${system.name}`}
-                      aria-pressed={isActive}
-                    >
-                      <span className={styles.hotspotDot}>
-                        <i />
-                      </span>
-                      <span className={styles.hotspotLine} />
-                      <span className={styles.hotspotLabel}>{system.name}</span>
-                    </button>
-                  );
-                })}
               </div>
 
-              <div className={styles.selectedTag}>
+              <div
+                className={`${styles.selectedTag} ${
+                  isFocusedBadgeClosed ? styles.selectedTagClosed : ""
+                } ${
+                  environmentTheme === "studio" ? styles.selectedTagStudio : ""
+                }`}
+              >
                 <span className={styles.selectedTagGlyph}>
                   <SystemGlyph icon={selected.icon} size={20} />
                 </span>
@@ -629,48 +805,15 @@ export default function PetronarcDashboard() {
               </div>
             </div>
           </section>
-
-          <section className={styles.costPanel} aria-label="Build cost distribution">
-            <div className={styles.costPanelHead}>
-              <span>
-                <small>COST DISTRIBUTION</small>
-                <strong>System allocation</strong>
-              </span>
-              <span className={styles.selectedAllocation}>
-                <b>{selectedShare.toFixed(1)}%</b>
-                <small>{selected.shortName} share</small>
-              </span>
-            </div>
-            <div className={styles.segmentedBar}>
-              {KART_SYSTEMS.map((system) => (
-                <button
-                  type="button"
-                  key={system.id}
-                  className={system.id === selectedId ? styles.segmentActive : ""}
-                  style={
-                    {
-                      "--segment-share": `${
-                        (system.estimatedCostInr / TOTAL_ESTIMATED_COST) * 100
-                      }%`,
-                    } as CSSProperties
-                  }
-                  onClick={() => selectSystem(system.id)}
-                  aria-label={`${system.name}: ${formatInr(system.estimatedCostInr)}`}
-                  title={`${system.name} Â· ${formatInr(system.estimatedCostInr)}`}
-                />
-              ))}
-            </div>
-            <div className={styles.costLegend}>
-              <span>â‚¹0</span>
-              <p>
-                <i /> Selected: {selected.name}
-              </p>
-              <span>{formatInr(TOTAL_ESTIMATED_COST)}</span>
-            </div>
-          </section>
         </div>
 
-        <aside className={styles.detailPanel} aria-live="polite">
+        <aside
+          className={`${styles.detailPanel} ${
+            isDetailPanelClosed ? styles.detailPanelClosed : ""
+          }`}
+          aria-live="polite"
+          aria-hidden={isDetailPanelClosed}
+        >
           <div className={styles.detailCorners} aria-hidden="true" />
           <div className={styles.detailHeader}>
             <span>
@@ -682,7 +825,9 @@ export default function PetronarcDashboard() {
                 <SystemGlyph icon={selected.icon} size={44} />
               </span>
               <span>
-                <h2>{selected.name}</h2>
+                <h2 id="focused-system-heading" tabIndex={-1}>
+                  {selected.name}
+                </h2>
                 <p>{selected.description}</p>
               </span>
             </div>

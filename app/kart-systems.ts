@@ -6,9 +6,7 @@ export type SystemId =
   | "wheels"
   | "electrical"
   | "engine"
-  | "seat"
-  | "safety"
-  | "misc";
+  | "seat";
 
 export type IconKey = SystemId;
 
@@ -27,7 +25,8 @@ export interface KartSystem {
   aliases: string[];
   keyComponents: KeyComponent[];
   icon: IconKey;
-  hotspot: { x: number; y: number; align: "left" | "right" };
+  anchors3D: Array<[number, number, number]>; // Primary [0] and secondary 3D candidate vectors
+  cameraOffset: [number, number, number];    // Model-space offset vector for camera focus
 }
 
 export const KART_SYSTEMS: KartSystem[] = [
@@ -49,7 +48,12 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Pedal Box", quantity: 1 },
     ],
     icon: "brake",
-    hotspot: { x: 31, y: 64, align: "right" },
+    // Representative front brake hub / caliper location elevated above wheel mesh.
+    anchors3D: [
+      [0.292, -0.10, -0.38],
+      [0.292, -0.12, -0.34],
+    ],
+    cameraOffset: [0.6, 0.4, 0.8],
   },
   {
     id: "chassis",
@@ -69,7 +73,11 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Fastener Sets", quantity: 10 },
     ],
     icon: "chassis",
-    hotspot: { x: 59, y: 42, align: "left" },
+    anchors3D: [
+      [-0.338, 0.365, 0.007],
+      [-0.338, 0.35, 0.0],
+    ],
+    cameraOffset: [0.7, 0.5, 0.6],
   },
   {
     id: "steering",
@@ -89,7 +97,12 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Rod Ends", quantity: 4 },
     ],
     icon: "steering",
-    hotspot: { x: 42, y: 48, align: "left" },
+    // Measured steering rack & column assembly moved further forward and down.
+    anchors3D: [
+      [0.06, -0.08, -0.02],
+      [0.08, -0.10, 0.00],
+    ],
+    cameraOffset: [0.4, 0.6, 0.6],
   },
   {
     id: "suspension",
@@ -109,7 +122,12 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Adjustment Shims", quantity: 12 },
     ],
     icon: "suspension",
-    hotspot: { x: 49, y: 72, align: "left" },
+    // Representative rear-left suspension & coilover assembly.
+    anchors3D: [
+      [-0.62, -0.10, -0.38],
+      [-0.62, -0.12, -0.40],
+    ],
+    cameraOffset: [0.7, 0.5, -0.7],
   },
   {
     id: "wheels",
@@ -129,7 +147,13 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Wheel Nuts", quantity: 4 },
     ],
     icon: "wheels",
-    hotspot: { x: 78, y: 68, align: "left" },
+    // Measured elevated tire shoulder / tread surface location.
+    anchors3D: [
+      [0.308, -0.10, 0.536],
+      [0.308, -0.10, -0.536],
+      [0.308, -0.08, 0.48],
+    ],
+    cameraOffset: [-0.6, 0.4, 0.8],
   },
   {
     id: "electrical",
@@ -149,7 +173,11 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Fuse & Relay Box", quantity: 1 },
     ],
     icon: "electrical",
-    hotspot: { x: 80, y: 53, align: "right" },
+    anchors3D: [
+      [-0.55, -0.15, 0.18],
+      [-0.55, -0.18, 0.15],
+    ],
+    cameraOffset: [-0.4, 0.5, 0.7],
   },
   {
     id: "engine",
@@ -169,7 +197,12 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Drive Components", quantity: 6 },
     ],
     icon: "engine",
-    hotspot: { x: 83, y: 38, align: "left" },
+    // Measured rear powertrain surface slightly offset left.
+    anchors3D: [
+      [-0.595, 0.032, -0.02],
+      [-0.595, 0.032, -0.04],
+    ],
+    cameraOffset: [-0.8, 0.6, 0.5],
   },
   {
     id: "seat",
@@ -189,47 +222,12 @@ export const KART_SYSTEMS: KartSystem[] = [
       { name: "Thermal Insulation", quantity: 2 },
     ],
     icon: "seat",
-    hotspot: { x: 62, y: 31, align: "right" },
-  },
-  {
-    id: "safety",
-    name: "Safety Gear",
-    shortName: "Safety Gear",
-    componentCount: 10,
-    estimatedCostInr: 58_000,
-    description:
-      "Competition-grade driver protection covering impact, fire resistance, restraint and emergency response requirements.",
-    aliases: ["helmet", "suit", "gloves", "extinguisher", "protection", "roll hoop"],
-    keyComponents: [
-      { name: "Driver Helmet", quantity: 1 },
-      { name: "Fireproof Suit", quantity: 1 },
-      { name: "Gloves & Shoes", quantity: 2 },
-      { name: "Neck Restraint", quantity: 1 },
-      { name: "Fire Extinguisher", quantity: 1 },
-      { name: "Emergency Cut-Off", quantity: 2 },
+    // Measured visible seat shell surface brought slightly forward.
+    anchors3D: [
+      [-0.26, 0.01, 0.00],
+      [-0.24, 0.03, -0.05],
     ],
-    icon: "safety",
-    hotspot: { x: 58, y: 17, align: "right" },
-  },
-  {
-    id: "misc",
-    name: "Misc. Finish & Assembly",
-    shortName: "Finish & Assembly",
-    componentCount: 15,
-    estimatedCostInr: 67_500,
-    description:
-      "Fabrication consumables, fasteners, surface finishing and final integration work that turn individual systems into a finished kart.",
-    aliases: ["paint", "fasteners", "fabrication", "labour", "assembly", "consumables"],
-    keyComponents: [
-      { name: "Fastener Inventory", quantity: 1 },
-      { name: "Powder Coating", quantity: 1 },
-      { name: "Body Panels", quantity: 3 },
-      { name: "Fabrication Supplies", quantity: 1 },
-      { name: "Workshop Consumables", quantity: 1 },
-      { name: "Final Alignment", quantity: 1 },
-    ],
-    icon: "misc",
-    hotspot: { x: 21, y: 78, align: "right" },
+    cameraOffset: [0.2, 0.6, 0.7],
   },
 ];
 

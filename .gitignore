@@ -43,4 +43,5 @@ AGENTS.md
 CLAUDE.md
 docs/
 .agents/
+.claude/
 skills-lock.json
