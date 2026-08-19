@@ -1,0 +1,11 @@
+# Petronarc Formula Student PBR material
+newmtl MetaShot_PBR
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.050 0.050 0.050
+Ns 96.0
+illum 2
+map_Kd basecolor.png
+map_Pr roughness.png
+map_Pm metallic.png
+map_Bump -bm 1.0 normal.png

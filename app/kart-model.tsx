@@ -12,7 +12,7 @@ import {
   isPointVisibleInFrustum,
   updateAnchorSelection,
 } from "./kart-marker-math";
-import { getSystemById, KART_SYSTEMS, type SystemId } from "./kart-systems";
+import { formatInr, getSystemById, MARKER_SYSTEMS, type SystemId } from "./kart-systems";
 import { ENVIRONMENT_THEMES, type EnvironmentThemeId } from "./kart-environment";
 import styles from "./dashboard.module.css";
 
@@ -29,6 +29,7 @@ interface KartModelProps {
   selectedId: SystemId;
   focusRequest: FocusRequest;
   onSelectSystem: (id: SystemId) => void;
+  systemCosts?: Record<SystemId, number>;
   environmentTheme?: EnvironmentThemeId;
 }
 
@@ -44,6 +45,7 @@ export default function KartModel({
   selectedId,
   focusRequest,
   onSelectSystem,
+  systemCosts,
   environmentTheme = "cyber",
 }: KartModelProps) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -362,7 +364,8 @@ export default function KartModel({
     focusSystemRef.current = (req: FocusRequest) => {
       if (!req || !isModelLoadedRef.current) return;
       const system = getSystemById(req.id);
-      if (!system) return;
+      // Systems without 3D anchors (safety gear, assembly) have nothing to focus on.
+      if (!system || system.anchors3D.length === 0) return;
 
       const primaryAnchorVec = new THREE.Vector3(...system.anchors3D[0]);
       const targetWorldPos = primaryAnchorVec
@@ -401,16 +404,13 @@ export default function KartModel({
     };
 
     // System selection hysteresis state tracking
-    const systemSelectionState: Record<SystemId, AnchorSelectionState> = {
-      brake: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-      chassis: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-      steering: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-      suspension: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-      wheels: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-      electrical: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-      engine: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-      seat: { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
-    };
+    // Built from MARKER_SYSTEMS so adding a system never needs a matching entry here.
+    const systemSelectionState = Object.fromEntries(
+      MARKER_SYSTEMS.map((system) => [
+        system.id,
+        { activeIndex: 0, challengerIndex: null, challengerFrames: 0 },
+      ]),
+    ) as Record<SystemId, AnchorSelectionState>;
 
     const resize = () => {
       const { width, height } = host.getBoundingClientRect();
@@ -462,7 +462,7 @@ export default function KartModel({
       if (hostWidth && hostHeight && isModelLoadedRef.current && loadedMeshObject) {
         const tempCameraSpacePos = new THREE.Vector3();
 
-        KART_SYSTEMS.forEach((system) => {
+        MARKER_SYSTEMS.forEach((system) => {
           const anchorEl = anchorRefs.current.get(system.id);
           const buttonEl = buttonRefs.current.get(system.id);
           const assemblyEl = assemblyRefs.current.get(system.id);
@@ -636,8 +636,9 @@ export default function KartModel({
       />
 
       <div className={styles.hotspotOverlay}>
-        {(isCalibrationMode ? [getSystemById(selectedId)] : KART_SYSTEMS).map((system) => {
+        {(isCalibrationMode ? MARKER_SYSTEMS.filter((s) => s.id === selectedId) : MARKER_SYSTEMS).map((system) => {
           const isActive = system.id === selectedId;
+          const cost = systemCosts ? systemCosts[system.id] || 0 : 0;
           return (
             <div
               key={system.id}
@@ -650,7 +651,7 @@ export default function KartModel({
               <button
                 type="button"
                 className={`${styles.hotspot} ${isActive ? styles.hotspotActive : ""}`}
-                aria-label={`Select ${system.name}`}
+                aria-label={`Select ${system.name}, Total Cost: ${formatInr(cost)}`}
                 aria-pressed={isActive}
                 ref={(el) => {
                   if (el) buttonRefs.current.set(system.id, el);
@@ -669,7 +670,10 @@ export default function KartModel({
                   }}
                 >
                   <span className={styles.hotspotLine} />
-                  <span className={styles.hotspotLabel}>{system.name}</span>
+                  <span className={styles.hotspotLabel}>
+                    <strong>{system.name}</strong>
+                    <small>{formatInr(cost)}</small>
+                  </span>
                 </span>
               </button>
             </div>
